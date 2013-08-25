@@ -28,6 +28,7 @@ static const void *Hysteriatag = &Hysteriatag;
     PlayerReadyToPlay playerReadyToPlay;
     PlayerRateChanged playerRateChanged;
     CurrentItemChanged currentItemChanged;
+    CurrentItemChangedBuffering currentItemChangedBuffering;
     ItemReadyToPlay itemReadyToPlay;
     PlayerFailed playerFailed;
     PlayerDidReachEnd playerDidReachEnd;
@@ -58,7 +59,7 @@ static HysteriaPlayer *sharedInstance = nil;
     return sharedInstance;
 }
 
-- (id)initWithHandlerPlayerReadyToPlay:(PlayerReadyToPlay)_playerReadyToPlay PlayerRateChanged:(PlayerRateChanged)_playerRateChanged CurrentItemChanged:(CurrentItemChanged)_currentItemChanged ItemReadyToPlay:(ItemReadyToPlay)_itemReadyToPlay PlayerFailed:(PlayerFailed)_playerFailed PlayerDidReachEnd:(PlayerDidReachEnd)_playerDidReachEnd
+- (id)initWithHandlerPlayerReadyToPlay:(PlayerReadyToPlay)_playerReadyToPlay PlayerRateChanged:(PlayerRateChanged)_playerRateChanged CurrentItemChanged:(CurrentItemChanged)_currentItemChanged CurrentItemChangedBuffering:(CurrentItemChangedBuffering)_currentItemChangedBuffering ItemReadyToPlay:(ItemReadyToPlay)_itemReadyToPlay PlayerFailed:(PlayerFailed)_playerFailed PlayerDidReachEnd:(PlayerDidReachEnd)_playerDidReachEnd
 {
     if ((sharedInstance = [super init])) {
         HBGQueue = dispatch_queue_create("com.hysteria.queue", NULL);
@@ -70,6 +71,7 @@ static HysteriaPlayer *sharedInstance = nil;
         playerReadyToPlay = _playerReadyToPlay;
         playerRateChanged = _playerRateChanged;
         currentItemChanged = _currentItemChanged;
+        currentItemChangedBuffering = _currentItemChangedBuffering;
         itemReadyToPlay = _itemReadyToPlay;
         playerFailed = _playerFailed;
         playerDidReachEnd = _playerDidReachEnd;
@@ -507,7 +509,7 @@ static HysteriaPlayer *sharedInstance = nil;
 
 - (BOOL)isPlaying
 {
-	return [audioPlayer rate] != 0.f;
+    return [audioPlayer rate] != 0.f;
 }
 
 - (HysteriaPauseReason)pauseReason
@@ -528,12 +530,12 @@ static HysteriaPlayer *sharedInstance = nil;
         return [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithDouble:0.0], @"CurrentTime", [NSNumber numberWithDouble:0.0], @"DurationTime", nil];
     }
     
-	double duration = CMTimeGetSeconds(playerDuration);
-	if (isfinite(duration))
-	{
-		double time = CMTimeGetSeconds([audioPlayer currentTime]);
+    double duration = CMTimeGetSeconds(playerDuration);
+    if (isfinite(duration))
+    {
+        double time = CMTimeGetSeconds([audioPlayer currentTime]);
         return [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithDouble:time], @"CurrentTime", [NSNumber numberWithDouble:duration], @"DurationTime", nil];
-	}else{
+    }else{
         return [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithDouble:0.0], @"CurrentTime", [NSNumber numberWithDouble:0.0], @"DurationTime", nil];
     }
 }
@@ -640,6 +642,7 @@ static void audio_route_change_listener(void *inClientData,
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object
                         change:(NSDictionary *)change context:(void *)context {
+  
     if (object == audioPlayer && [keyPath isEqualToString:@"status"]) {
         if (audioPlayer.status == AVPlayerStatusReadyToPlay) {
             if (playerReadyToPlay != nil) {
@@ -665,7 +668,18 @@ static void audio_route_change_listener(void *inClientData,
     if(object == audioPlayer && [keyPath isEqualToString:@"currentItem"]){
         if (currentItemChanged != nil) {
             AVPlayerItem *newPlayerItem = [change objectForKey:NSKeyValueChangeNewKey];
-            currentItemChanged(newPlayerItem);
+          
+            if(currentItemChanged != nil){
+              currentItemChanged(newPlayerItem);
+            }
+          
+            if(![newPlayerItem isEqual:[NSNull null]]){
+              AVURLAsset *asset = (AVURLAsset *)newPlayerItem.asset;
+              
+              if ([[asset.URL absoluteString] rangeOfString:@"point1sec.mp3"].location == NSNotFound) {
+                currentItemChangedBuffering(newPlayerItem);
+              }
+            }
         }
     }
     
@@ -695,12 +709,10 @@ static void audio_route_change_listener(void *inClientData,
             NSLog(@". . . %.5f  -> %.5f",CMTimeGetSeconds(timerange.start),CMTimeGetSeconds(timerange.duration));
             
             if (audioPlayer.rate == 0 && !PAUSE_REASON_ForcePause) {
-                CMTime bufferdTime = CMTimeAdd(timerange.start, timerange.duration);
-                CMTime milestone = CMTimeAdd(audioPlayer.currentTime, CMTimeMakeWithSeconds(5.0f, timerange.duration.timescale));
-                
-                if (CMTIME_COMPARE_INLINE(bufferdTime , >, milestone) && audioPlayer.currentItem.status == AVPlayerItemStatusReadyToPlay && !interruptedWhilePlaying && !routeChangedWhilePlaying) {
+                //buffer for 5 secs, then play
+                if (CMTIME_COMPARE_INLINE(timerange.duration, >, CMTimeMakeWithSeconds(5, timerange.duration.timescale)) && audioPlayer.currentItem.status == AVPlayerItemStatusReadyToPlay && !interruptedWhilePlaying && !routeChangedWhilePlaying) {
+                    NSLog(@"buffering..");
                     if (![self isPlaying]) {
-                        NSLog(@"resume from buffering..");
                         [audioPlayer play];
                     }
                 }
@@ -764,6 +776,7 @@ static void audio_route_change_listener(void *inClientData,
     playerReadyToPlay = nil;
     playerRateChanged = nil;
     currentItemChanged = nil;
+    currentItemChangedBuffering = nil;
     itemReadyToPlay = nil;
     playerFailed = nil;
     playerDidReachEnd = nil;
