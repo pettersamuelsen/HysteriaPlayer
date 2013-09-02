@@ -32,6 +32,7 @@ static const void *Hysteriatag = &Hysteriatag;
     ItemReadyToPlay itemReadyToPlay;
     PlayerFailed playerFailed;
     PlayerDidReachEnd playerDidReachEnd;
+    PlayerPreLoaded playerPreLoaded;
 }
 
 @property (nonatomic, strong, readwrite) NSMutableArray *playerItems;
@@ -59,7 +60,7 @@ static HysteriaPlayer *sharedInstance = nil;
     return sharedInstance;
 }
 
-- (id)initWithHandlerPlayerReadyToPlay:(PlayerReadyToPlay)_playerReadyToPlay PlayerRateChanged:(PlayerRateChanged)_playerRateChanged CurrentItemChanged:(CurrentItemChanged)_currentItemChanged CurrentItemChangedBuffering:(CurrentItemChangedBuffering)_currentItemChangedBuffering ItemReadyToPlay:(ItemReadyToPlay)_itemReadyToPlay PlayerFailed:(PlayerFailed)_playerFailed PlayerDidReachEnd:(PlayerDidReachEnd)_playerDidReachEnd
+- (id)initWithHandlerPlayerReadyToPlay:(PlayerReadyToPlay)_playerReadyToPlay PlayerRateChanged:(PlayerRateChanged)_playerRateChanged CurrentItemChanged:(CurrentItemChanged)_currentItemChanged CurrentItemChangedBuffering:(CurrentItemChangedBuffering)_currentItemChangedBuffering ItemReadyToPlay:(ItemReadyToPlay)_itemReadyToPlay PlayerFailed:(PlayerFailed)_playerFailed PlayerDidReachEnd:(PlayerDidReachEnd)_playerDidReachEnd PlayerPreLoaded:(PlayerPreLoaded)_playerPreLoaded
 {
     if ((sharedInstance = [super init])) {
         HBGQueue = dispatch_queue_create("com.hysteria.queue", NULL);
@@ -75,7 +76,8 @@ static HysteriaPlayer *sharedInstance = nil;
         itemReadyToPlay = _itemReadyToPlay;
         playerFailed = _playerFailed;
         playerDidReachEnd = _playerDidReachEnd;
-        
+        playerPreLoaded = _playerPreLoaded;
+      
         [self backgroundPlayable];
         [self playEmptySound];
         [self AVAudioSessionNotification];
@@ -714,7 +716,9 @@ static void audio_route_change_listener(void *inClientData,
         NSArray *timeRanges = (NSArray *)[change objectForKey:NSKeyValueChangeNewKey];
         if (timeRanges && [timeRanges count]) {
             CMTimeRange timerange=[[timeRanges objectAtIndex:0]CMTimeRangeValue];
-            
+          
+            playerPreLoaded(CMTimeGetSeconds(timerange.start), CMTimeGetSeconds(timerange.duration));
+          
             NSLog(@". . . %.5f  -> %.5f",CMTimeGetSeconds(timerange.start),CMTimeGetSeconds(timerange.duration));
             
             if (audioPlayer.rate == 0 && !PAUSE_REASON_ForcePause) {

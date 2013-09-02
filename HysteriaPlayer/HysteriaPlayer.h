@@ -36,6 +36,7 @@ typedef void (^ CurrentItemChangedBuffering)(AVPlayerItem *);
 typedef void (^ ItemReadyToPlay)();
 typedef void (^ PlayerFailed)();
 typedef void (^ PlayerDidReachEnd)();
+typedef void (^ PlayerPreLoaded)(CGFloat, CGFloat);
 
 
 typedef enum
@@ -76,7 +77,7 @@ Player_ShuffleMode;
 @property (nonatomic) Player_ShuffleMode _shuffleMode;
 
 + (HysteriaPlayer *)sharedInstance;
-- (instancetype)initWithHandlerPlayerReadyToPlay:(PlayerReadyToPlay)playerReadyToPlay PlayerRateChanged:(PlayerRateChanged)playerRateChanged CurrentItemChanged:(CurrentItemChanged)currentItemChanged CurrentItemChangedBuffering:(CurrentItemChangedBuffering)currentItemChangedBuffering ItemReadyToPlay:(ItemReadyToPlay)itemReadyToPlay PlayerFailed:(PlayerFailed)playerFailed PlayerDidReachEnd:(PlayerDidReachEnd)playerDidReachEnd;
+- (instancetype)initWithHandlerPlayerReadyToPlay:(PlayerReadyToPlay)playerReadyToPlay PlayerRateChanged:(PlayerRateChanged)playerRateChanged CurrentItemChanged:(CurrentItemChanged)currentItemChanged CurrentItemChangedBuffering:(CurrentItemChangedBuffering)currentItemChangedBuffering ItemReadyToPlay:(ItemReadyToPlay)itemReadyToPlay PlayerFailed:(PlayerFailed)playerFailed PlayerDidReachEnd:(PlayerDidReachEnd)playerDidReachEnd PlayerPreLoaded:(PlayerPreLoaded)playerPreLoaded;
 - (void)setupWithGetterBlock:(SourceItemGetter) itemBlock ItemsCount:(NSUInteger) count;
 - (void)setItemsCount:(NSUInteger)count;
 
