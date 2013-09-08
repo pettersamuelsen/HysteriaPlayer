@@ -323,8 +323,13 @@ static HysteriaPlayer *sharedInstance = nil;
 {
     for (AVPlayerItem *obj in playerItems) {
         [obj seekToTime:kCMTimeZero];
+      @try {
         [obj removeObserver:self forKeyPath:@"loadedTimeRanges" context:nil];
         [obj removeObserver:self forKeyPath:@"status" context:nil];
+      }
+      @catch (NSException *exception) {
+        
+      }
     }
     
     [playerItems removeAllObjects];
