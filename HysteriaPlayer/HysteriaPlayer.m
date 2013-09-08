@@ -79,7 +79,7 @@ static HysteriaPlayer *sharedInstance = nil;
         playerPreLoaded = _playerPreLoaded;
       
         [self backgroundPlayable];
-        [self playEmptySound];
+//        [self playEmptySound];
         [self AVAudioSessionNotification];
     }
     return sharedInstance;
