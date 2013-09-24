@@ -34,7 +34,7 @@ typedef void (^ PlayerRateChanged)();
 typedef void (^ CurrentItemChanged)(AVPlayerItem *);
 typedef void (^ CurrentItemChangedBuffering)(AVPlayerItem *);
 typedef void (^ ItemReadyToPlay)();
-typedef void (^ PlayerFailed)();
+typedef void (^ PlayerFailed)(NSError *error, AVPlayerItem *item);
 typedef void (^ PlayerDidReachEnd)();
 typedef void (^ PlayerPreLoaded)(CGFloat, CGFloat);
 
