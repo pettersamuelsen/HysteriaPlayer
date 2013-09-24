@@ -670,7 +670,7 @@ static void audio_route_change_listener(void *inClientData,
         } else if (audioPlayer.status == AVPlayerStatusFailed) {
             NSLog(@"%@",audioPlayer.error);
             if (playerFailed != nil) {
-                playerFailed();
+                playerFailed(audioPlayer.error);
             }
         }
     }
@@ -702,7 +702,10 @@ static void audio_route_change_listener(void *inClientData,
     if (object == audioPlayer.currentItem && [keyPath isEqualToString:@"status"]) {
         if (audioPlayer.currentItem.status == AVPlayerItemStatusFailed) {
             NSLog(@"------player item failed:%@",audioPlayer.currentItem.error);
-            [self playNext];
+            if (playerFailed != nil) {
+              NSLog(@"failed");
+              playerFailed(audioPlayer.currentItem.error);
+            }
         }else if (audioPlayer.currentItem.status == AVPlayerItemStatusReadyToPlay) {
             if (itemReadyToPlay != nil) {
                 itemReadyToPlay();
