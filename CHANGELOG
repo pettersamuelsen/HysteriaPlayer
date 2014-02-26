@@ -1,0 +1,33 @@
+Current Version:
+
+Version 1.5.4:
+* Supporting local media
+* SourceGetter callback block used to return NSString type result changes to NSURL type
+* Async source getter now comes with SetupItemWithUrl:Order: method instead SetupItem:Order:
+
+Version 1.5.3:
+* Fixed issue about deprecating player and recreate one by + (instancetype) SharedInstance, singleton issue.
+* Show error messages (optional)
+* Would not take audio focus when sharedInstance been called.
+
+Version 1.5.2:
+* enhanced memory cache disabled, but still go through pre-buffer 
+* iOS 7 won't pre-buffer next item when in weak network, preventing advance to empty item. Will check next item is pre-buffered before jump into.
+* HYSTERIAPLAYER_CURRENT_TIME, HYSTERIAPLAYER_DURATION_TIME
+
+Version 1.5.0:
+* Comportable shuffle algorithm
+* Using New iOS SDK API: NotificationCetner handling interrutpion and route change
+* add setupSourceGetter:ItemsCount:
+* add asyncSetupSourceGetter:ItemsCount:
+* deprecate setupWithGetterBlock:ItemsCount:
+
+version 1.2.1:
+* Cached item bug fixed
+
+version 1.2.0:
+* Refactor API interface
+* Add buffering status
+* Add -(void)pausePlayerForcibly:(BOOL) method
+* Rename HysteriaPauseReason to HysteriaPlayerStatus
+* Improve code readability
