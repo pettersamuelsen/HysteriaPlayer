@@ -11,3 +11,4 @@ Pod::Spec.new do |s|
   s.resources    = 'HysteriaPlayer/point1sec.{mp3}'
   s.frameworks   = 'CoreMedia', 'AudioToolbox', 'AVFoundation'
   s.requires_arc = true
+end
